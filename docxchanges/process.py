@@ -135,9 +135,13 @@ class DocxProcess:
 
 			return instext
 
+
+	# Changed this to add the original deletions and insertions
 	def get_changes(self, my_etree):
 		"""Returns a list of lists for all ins/del pairs"""
-		changes = [] # List of 2lists, x[0] = del, x[1] = ins
+		changes = [] 	# List of 4-lists
+						# x[0] = del, x[1] = ins (surrounding word)
+						# x[2] = del, x[3] = ins (exact original)
 		prev_token = ""
 		prev_ins = ""
 		prev_del = ""
@@ -179,8 +183,9 @@ class DocxProcess:
 					if after_first_del:
 						prev_token = ""
 						changes[-1][1] = insertion
+						changes[-1][3] = node.text
 					else:
-						changes.append(["", insertion])
+						changes.append(["", insertion, "", node.text])
 			else: # Case of deleted text
 				if after_first_del:
 					prev_token = ""
@@ -197,6 +202,7 @@ class DocxProcess:
 				if after_first_ins:
 					prev_token = ""
 					changes[-1][0] = deletion
+					changes[-1][2] = node.text
 				else:
-					changes.append([deletion, ""])
+					changes.append([deletion, "", node.text, ""])
 		return changes

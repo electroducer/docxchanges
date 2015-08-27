@@ -13,6 +13,7 @@ class DocxProcess:
 
 	def get_text(self, my_etree):
 		"""Returns all text as a single string"""
+		text = ""
 		for node in my_etree.iter(tag=etree.Element):
 			if self._check_element_is(node, 't'):
 				text += node.text

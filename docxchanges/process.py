@@ -11,6 +11,13 @@ class DocxProcess:
 			if self._check_element_is(node, 't'):
 				yield (node, node.text)
 
+	def get_text(self, my_etree):
+		"""Returns all text as a single string"""
+		for node in my_etree.iter(tag=etree.Element):
+			if self._check_element_is(node, 't'):
+				text += node.text
+		return text
+
 	# used for extracting only text
 	def get_paragraphs(self, my_etree):
 		"""Returns a list of the text of all paragraphs"""

@@ -31,9 +31,8 @@ class DocxImport:
 
 	# imports the root xml file from the docx bundle
 	def get_word_xml(self, docx_filename):
-		with open(docx_filename) as f:
-			zip = zipfile.ZipFile(f)
-			xml_content = zip.read('word/document.xml')
+		zip = zipfile.ZipFile(docx_filename)
+		xml_content = zip.read('word/document.xml')
 			#should throw an exception here if file is corrupted
 		return xml_content
 

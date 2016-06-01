@@ -4,27 +4,34 @@ from lxml import etree
 
 class DocxProcess:
     word_schema = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+    doc_etree = None
+
+    # Initialiser for object
+    def __init__(self, tree=None):
+        assert tree, "No valid etree assigned"
+        self.doc_etree = tree
+
     # prototype, not currently in use
-    def _itertext(self, my_etree):
+    def _itertext(self):
         """Iterator to go through xml tree's text nodes"""
-        for node in my_etree.iter(tag=etree.Element):
+        for node in self.doc_etree.iter(tag=etree.Element):
             if self._check_element_is(node, 't'):
                 yield (node, node.text)
 
-    def get_text(self, my_etree):
+    def get_text(self):
         """Returns all text as a single string"""
         text = ""
-        for node in my_etree.iter(tag=etree.Element):
+        for node in self.doc_etree.iter(tag=etree.Element):
             if self._check_element_is(node, 't'):
                 text += node.text
         return text
 
     # used for extracting only text
-    def get_paragraphs(self, my_etree):
+    def get_paragraphs(self,):
         """Returns a list of the text of all paragraphs"""
         paragraphs = []
         idx = -1
-        for node in my_etree.iter(tag=etree.Element):
+        for node in self.doc_etree.iter(tag=etree.Element):
             if self._check_element_is(node, 'p'):
                 idx += 1
                 paragraphs.append("")
@@ -43,10 +50,10 @@ class DocxProcess:
         return "{" + self.word_schema + "}" + type_char
 
     # Simplifies the tree but ignores changes
-    def simplify_tree(self, my_etree):
+    def simplify_tree(self):
         """Returns an etree using only relevant data"""
         root = etree.Element("d")
-        for node in my_etree.iter(tag=etree.Element):
+        for node in self.doc_etree.iter(tag=etree.Element):
             if self._check_element_is(node, 'p'):
                 current_p = etree.SubElement(root, "p")
             elif self._check_element_is(node, 't'):
@@ -54,10 +61,10 @@ class DocxProcess:
                 current_t.text = node.text
         return root
 
-    def simplify_tree_changes(self, my_etree):
+    def simplify_tree_changes(self):
         """Returns a simplified etree that retains tracked changes"""
         root = etree.Element("d")
-        iterator = my_etree.iter()
+        iterator = self.doc_etree.iter()
         for node in iterator:
             if self._check_element_is(node, 'p'):
                 current_p = etree.SubElement(root, 'p')
@@ -82,12 +89,12 @@ class DocxProcess:
                 current_t.text = node.text
         return root
 
-    def get_deletions(self, my_etree):
+    def get_deletions(self):
         """Returns an array of all deleted tokens according to del tag"""
         deltext = []
         prev_token = ""
         prev_del = ""
-        for node in my_etree.iter(self.convert_tag('t'), self.convert_tag('delText')):
+        for node in self.doc_etree.iter(self.convert_tag('t'), self.convert_tag('delText')):
             if self._check_element_is(node, 't'):
                 skip = False
                 for parent in node.iterancestors(self.convert_tag('ins')):
@@ -113,12 +120,12 @@ class DocxProcess:
 
         return deltext
 
-    def get_insertions(self, my_etree):
+    def get_insertions(self):
             """Returns an array of all deleted tokens according to del tag"""
             instext = []
             prev_token = ""
             prev_ins = ""
-            for node in my_etree.iter(self.convert_tag('t')):
+            for node in self.doc_etree.iter(self.convert_tag('t')):
                 ins_tag = False
                 for parent in node.iterancestors(self.convert_tag('ins')):
                     ins_tag = True
@@ -145,7 +152,7 @@ class DocxProcess:
 
 
     # Changed this to add the original deletions and insertions
-    def get_changes(self, my_etree):
+    def get_changes(self):
         """Returns a list of lists for all ins/del pairs"""
         changes = []     # List of 4-lists
                         # x[0] = del, x[1] = ins (surrounding word)
@@ -155,7 +162,7 @@ class DocxProcess:
         prev_del = ""
         after_first_ins = False
         after_first_del = False
-        for node in my_etree.iter(self.convert_tag('t'), self.convert_tag('delText')):
+        for node in self.doc_etree.iter(self.convert_tag('t'), self.convert_tag('delText')):
             if self._check_element_is(node, 't'):
                 ins_tag = False
                 for parent in node.iterancestors(self.convert_tag('ins')):

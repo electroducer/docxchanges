@@ -97,7 +97,12 @@ class DocxProcess:
     # in between, the insertion will be returned as "thinking".
 
 
-
+    def has_ins_parent(self, node):
+        """Checks whether node has an ins tag as an ancestor (signifies insertion)"""
+        ins = False
+        if len(list(node.iterancestors(self.convert_tag('ins')))):
+            ins = True
+        return ins
 
     def get_deletions(self):
         """Returns an array of all deleted tokens according to del tag"""
@@ -109,10 +114,7 @@ class DocxProcess:
         for node in self.doc_etree.iter(self.convert_tag('t'), self.convert_tag('delText')):
             # Handles regular text
             if self._check_element_is(node, 't'):
-                # Check whether text has ins tag as parent
-                skip = False
-                for parent in node.iterancestors(self.convert_tag('ins')):
-                    skip = True
+                skip = self.has_ins_parent(node)
                 # Continue only if non-inserted text
                 if not skip:
                     # If text does not end in space, collect everything after last space
@@ -148,10 +150,7 @@ class DocxProcess:
 
             # Iterate through all t tags
             for node in self.doc_etree.iter(self.convert_tag('t')):
-                # Check to determine whether t tag is child of ins tag (i.e. is inserted text)
-                ins_tag = False
-                for parent in node.iterancestors(self.convert_tag('ins')):
-                    ins_tag = True
+                ins_tag = self.has_ins_parent(node)
                 # Handles regular text
                 if not ins_tag:
                     # If node ends in a space, nothing to add
@@ -198,11 +197,7 @@ class DocxProcess:
         for node in self.doc_etree.iter(self.convert_tag('t'), self.convert_tag('delText')):
             # Handles regular text tags
             if self._check_element_is(node, 't'):
-                # Checks for ins tag as parent
-                ins_tag = False
-                for parent in node.iterancestors(self.convert_tag('ins')):
-                    ins_tag = True
-
+                ins_tag = self.has_ins_parent(node)
                 # Handles non-inserted regular text
                 if not ins_tag:
                     # If text does not end in space collect everything after last text
